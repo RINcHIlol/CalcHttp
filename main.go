@@ -13,17 +13,15 @@ type Request struct {
 }
 
 type Result struct {
-	Result     float64 `json:"result"`
-	StatusCode int     `json:"statusCode"`
+	Result float64 `json:"result"`
 }
 
-type ErrorResult struct {
-	Error      string `json:"error"`
-	StatusCode int    `json:"statusCode"`
+type Error struct {
+	Error string `json:"error"`
 }
 
 func main() {
-	http.HandleFunc("/", Calc)
+	http.HandleFunc("/api/v1/calculate", Calc)
 
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
@@ -37,7 +35,8 @@ func Calc(w http.ResponseWriter, r *http.Request) {
 	var request Request
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		errorData := ErrorResult{Error: "Expression is not valid", StatusCode: http.StatusUnprocessableEntity}
+		errorData := Error{Error: "Expression is not valid"}
+		w.WriteHeader(http.StatusUnprocessableEntity)
 		errorJson, _ := json.Marshal(errorData)
 		w.Write(errorJson)
 		return
@@ -54,7 +53,8 @@ func Calc(w http.ResponseWriter, r *http.Request) {
 			}
 			number, err := strconv.ParseFloat(expression[i:j], 64)
 			if err != nil {
-				errorData := ErrorResult{Error: "Expression is not valid", StatusCode: http.StatusUnprocessableEntity}
+				errorData := Error{Error: "Expression is not valid"}
+				w.WriteHeader(http.StatusUnprocessableEntity)
 				errorJson, _ := json.Marshal(errorData)
 				w.Write(errorJson)
 				return
@@ -67,14 +67,16 @@ func Calc(w http.ResponseWriter, r *http.Request) {
 			for len(operators) > 0 && operators[len(operators)-1] != '(' {
 				err := applyOperation(&numbers, &operators)
 				if err != nil {
-					errorData := ErrorResult{Error: "Expression is not valid", StatusCode: http.StatusUnprocessableEntity}
+					errorData := Error{Error: "Expression is not valid"}
+					w.WriteHeader(http.StatusUnprocessableEntity)
 					errorJson, _ := json.Marshal(errorData)
 					w.Write(errorJson)
 					return
 				}
 			}
 			if len(operators) == 0 || operators[len(operators)-1] != '(' {
-				errorData := ErrorResult{Error: "Expression is not valid", StatusCode: http.StatusUnprocessableEntity}
+				errorData := Error{Error: "Expression is not valid"}
+				w.WriteHeader(http.StatusUnprocessableEntity)
 				errorJson, _ := json.Marshal(errorData)
 				w.Write(errorJson)
 				return
@@ -84,7 +86,8 @@ func Calc(w http.ResponseWriter, r *http.Request) {
 			for len(operators) > 0 && precedence(operators[len(operators)-1]) >= precedence(char) {
 				err := applyOperation(&numbers, &operators)
 				if err != nil {
-					errorData := ErrorResult{Error: "Expression is not valid", StatusCode: http.StatusUnprocessableEntity}
+					errorData := Error{Error: "Expression is not valid"}
+					w.WriteHeader(http.StatusUnprocessableEntity)
 					errorJson, _ := json.Marshal(errorData)
 					w.Write(errorJson)
 					return
@@ -92,7 +95,8 @@ func Calc(w http.ResponseWriter, r *http.Request) {
 			}
 			operators = append(operators, char)
 		} else if !unicode.IsSpace(char) {
-			errorData := ErrorResult{Error: "Expression is not valid", StatusCode: http.StatusUnprocessableEntity}
+			errorData := Error{Error: "Expression is not valid"}
+			w.WriteHeader(http.StatusUnprocessableEntity)
 			errorJson, _ := json.Marshal(errorData)
 			w.Write(errorJson)
 			return
@@ -102,29 +106,33 @@ func Calc(w http.ResponseWriter, r *http.Request) {
 	for len(operators) > 0 {
 		err := applyOperation(&numbers, &operators)
 		if err != nil {
-			errorData := ErrorResult{Error: "Internal server error", StatusCode: http.StatusInternalServerError}
+			errorData := Error{Error: "Internal server error"}
+			w.WriteHeader(http.StatusInternalServerError)
 			errorJson, _ := json.Marshal(errorData)
 			w.Write(errorJson)
 			return
 		}
 	}
 	if len(numbers) != 1 {
-		errorData := ErrorResult{Error: "Internal server error", StatusCode: http.StatusInternalServerError}
+		errorData := Error{Error: "Internal server error"}
+		w.WriteHeader(http.StatusInternalServerError)
 		errorJson, _ := json.Marshal(errorData)
 		w.Write(errorJson)
 		return
 	}
 
-	response := Result{Result: numbers[0], StatusCode: http.StatusOK}
+	response := Result{Result: numbers[0]}
 
 	responseJson, err := json.Marshal(response)
 	if err != nil {
-		errorData := ErrorResult{Error: "Internal server error", StatusCode: http.StatusInternalServerError}
+		errorData := Error{Error: "Internal server error"}
+		w.WriteHeader(http.StatusInternalServerError)
 		errorJson, _ := json.Marshal(errorData)
 		w.Write(errorJson)
 		return
 	}
 
+	w.WriteHeader(http.StatusOK)
 	w.Write(responseJson)
 }
 
