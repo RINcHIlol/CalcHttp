@@ -38,7 +38,7 @@ Content-Type: text/plain; charset=utf-8
 
 ### 2. **Ошибка 422: Некорректное выражение**  
 
-Ввод некорректного выражения (`ощзф`):
+Ввод некорректного выражения (`buba`):
 
 ```bash
 curl -i -X POST http://localhost:8080/api/v1/calculate \
