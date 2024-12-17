@@ -25,7 +25,7 @@ curl -i -X POST http://localhost:8080/api/v1/calculate \
 ```
 
 **Ответ**:
-```json
+```text
 HTTP/1.1 200 OK
 Date: Tue, 17 Dec 2024 20:44:04 GMT
 Content-Length: 12
@@ -47,7 +47,7 @@ curl -i -X POST http://localhost:8080/api/v1/calculate \
 ```
 
 **Ответ**:
-```json
+```text
 HTTP/1.1 422 Unprocessable Entity
 Date: Tue, 17 Dec 2024 20:45:00 GMT
 Content-Length: 35
@@ -69,13 +69,13 @@ curl -i -X POST http://localhost:8080/api/v1/calculate \
 ```
 
 **Ответ**:
-```json
+```text
 HTTP/1.1 500 Internal Server Error
 Date: Tue, 17 Dec 2024 20:45:47 GMT
 Content-Length: 33
 Content-Type: text/plain; charset=utf-8
 
-{"error":"Internal server error"}
+{“error”:“Internal server error”}
 ```
 
 ---
